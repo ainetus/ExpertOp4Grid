@@ -9,13 +9,14 @@ the reason downstream repositories can depend on it directly.
 import networkx as nx
 import pandas as pd
 
+# _FromPackage / _FromShim: the renderer must also be reachable through both
+# public surfaces.
+from alphaDeesp.core.graphs import OverflowGraphRenderer as _FromPackage
 from alphaDeesp.core.graphs.edge_roles import EDGE_ROLE_INSIGNIFICANT, edge_role_of
 from alphaDeesp.core.graphs.overflow_renderer import (
     EVACUATION_ANTENNA_COLOR,
     OverflowGraphRenderer,
 )
-# The renderer must also be reachable through both public surfaces.
-from alphaDeesp.core.graphs import OverflowGraphRenderer as _FromPackage
 from alphaDeesp.core.graphsAndPaths import OverflowGraphRenderer as _FromShim
 
 
@@ -161,3 +162,33 @@ class TestEvacuationAntennas:
         for without_gray_edges in (True, False):
             OverflowGraphRenderer.prepare_for_plot(g, without_gray_edges)
         assert {edge: dict(data) for edge, data in g.edges.items()} == before
+
+
+class TestPlotDrawsThePreparedGraph:
+    def test_reduced_plot_draws_the_antenna_with_a_matching_layout(
+        self, monkeypatch, tmp_path
+    ):
+        """``plot`` hands the printer the prepared graph, and the layout of
+        exactly the nodes it keeps, in their order."""
+        drawn = {}
+
+        class FakePrinter:
+            def __init__(self, save_folder):
+                pass
+
+            def display_geo(self, g, layout, **kwargs):
+                drawn.update(graph=g, layout=layout)
+
+        # Patch the globals ``plot`` actually reads: other tests reload the
+        # graphs modules, so the module now in sys.modules may not be its own.
+        monkeypatch.setitem(OverflowGraphRenderer.plot.__globals__, "Printer", FakePrinter)
+        g = _graph_with_antenna()
+        layout = [(float(i), 0.0) for i in range(g.number_of_nodes())]
+        position = dict(zip(g.nodes, layout))
+
+        OverflowGraphRenderer.plot(
+            g, layout, save_folder=str(tmp_path), without_gray_edges=True)
+
+        kept = list(drawn["graph"].nodes)
+        assert "P2" in kept and "D" not in kept
+        assert drawn["layout"] == [position[node] for node in kept]

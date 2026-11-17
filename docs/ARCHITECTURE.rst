@@ -186,5 +186,7 @@ Extending the system
   :class:`~alphaDeesp.core.graphs.overflow_renderer.OverflowGraphRenderer`; it is
   independent of the model.
 * **New semantic layer** — stamp a boolean flag on the model
-  (``OverFlowGraph``) and add it to the viewer's layer configuration; do not key
+  (``OverFlowGraph``) and add it to the viewer's layer configuration
+  (``_SEMANTIC_LAYERS`` / ``_LAYER_SECTIONS``) with its swatch glyph in
+  ``assets/viewer.js`` (a test checks every semantic layer has one); do not key
   new behaviour off colour strings.

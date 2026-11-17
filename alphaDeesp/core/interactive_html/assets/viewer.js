@@ -177,6 +177,8 @@ const MODEL = __MODEL_JSON__;
     if (swatch === 'diamond') return '<svg viewBox="0 0 10 10"><polygon points="5,0 10,5 5,10 0,5" fill="#444"/></svg>';
     if (swatch === 'red-loop') return '<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="2" fill="coral"/><circle cx="5" cy="5" r="4" fill="none" stroke="coral" stroke-width="1"/></svg>';
     if (swatch === 'constrained-path') return '<svg viewBox="0 0 14 6"><line x1="0" y1="3" x2="14" y2="3" stroke="black" stroke-width="2"/></svg>';
+    // Same colour as the renderer's EVACUATION_ANTENNA_COLOR.
+    if (swatch === 'evacuation-antenna') return '<svg viewBox="0 0 14 6"><line x1="0" y1="3" x2="14" y2="3" stroke="darkgoldenrod" stroke-width="2"/></svg>';
     if (swatch === 'overload') return '<svg viewBox="0 0 14 6"><line x1="0" y1="3" x2="14" y2="3" stroke="black" stroke-width="2.5"/><line x1="0" y1="3" x2="14" y2="3" stroke="yellow" stroke-width="0.8"/></svg>';
     if (swatch === 'monitored') return '<svg viewBox="0 0 14 6"><line x1="0" y1="3" x2="14" y2="3" stroke="coral" stroke-width="2.5"/><line x1="0" y1="3" x2="14" y2="3" stroke="yellow" stroke-width="0.8"/></svg>';
     if (swatch === 'extra-cut') return '<svg viewBox="0 0 14 6"><line x1="0" y1="3" x2="14" y2="3" stroke="blue" stroke-width="2" stroke-dasharray="3 2"/></svg>';

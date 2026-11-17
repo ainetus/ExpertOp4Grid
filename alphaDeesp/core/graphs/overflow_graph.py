@@ -11,7 +11,9 @@ topology, per-edge redispatch magnitudes, the *role* of each edge encoded as
 a base colour (``black`` overload / ``blue`` negative / ``coral`` positive /
 ``gray`` insignificant), and the boolean semantic flags consumed downstream
 (``is_overload``, ``is_monitored``, ``on_constrained_path``, ``in_red_loop``,
-``is_hub``, ``is_extra_cut``).
+``is_hub``, ``is_extra_cut``). Callers may also stamp
+``in_evacuation_antenna`` on the evacuation antennas they detect; the renderer
+draws them.
 
 Everything that is *purely Graphviz presentation* — penwidth scaling, node
 shapes, tapered swap styling, the compound ``"colour:yellow:colour"``

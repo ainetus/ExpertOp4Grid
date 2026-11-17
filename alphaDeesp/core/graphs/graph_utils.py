@@ -29,7 +29,19 @@ def from_edges_get_nodes(edges: Iterable[Any], amont_or_aval: str, constrained_e
     else:
         raise ValueError("Error in function from_edges_get_nodes")
 
-def delete_color_edges(_g: nx.MultiDiGraph, edge_color: Union[str, Iterable[str]]) -> nx.MultiDiGraph:
+def is_flag_set(value: Any) -> bool:
+    """Whether a boolean graph attribute is set: ``True`` (or any truthy
+    value), or the string ``"True"`` it becomes once it went through DOT."""
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return bool(value)
+
+
+def delete_color_edges(
+    _g: nx.MultiDiGraph,
+    edge_color: Union[str, Iterable[str]],
+    keep_flags: Iterable[str] = (),
+) -> nx.MultiDiGraph:
     """
     Returns a copy of a graph without edges of the given colour(s).
 
@@ -50,6 +62,11 @@ def delete_color_edges(_g: nx.MultiDiGraph, edge_color: Union[str, Iterable[str]
     edge_color: ``str`` or iterable of ``str``
         colour(s) of edges to delete from the graph
 
+    keep_flags: iterable of ``str``, optional
+        boolean edge attributes that spare an edge whatever its colour: an
+        edge with one of them set (see :func:`is_flag_set`) survives. Empty
+        by default, so every edge of the colour(s) is deleted.
+
     Returns
     ----------
 
@@ -58,12 +75,14 @@ def delete_color_edges(_g: nx.MultiDiGraph, edge_color: Union[str, Iterable[str]
 
     """
     colors_to_delete = {edge_color} if isinstance(edge_color, str) else set(edge_color)
+    flags = tuple(keep_flags)
     g = _g.copy()
 
     target_edges = [
         (u, v, idx)
-        for u, v, idx, color in g.edges(keys=True, data="color")
-        if color in colors_to_delete
+        for u, v, idx, data in g.edges(keys=True, data=True)
+        if data.get("color") in colors_to_delete
+        and not any(is_flag_set(data.get(flag)) for flag in flags)
     ]
 
     if target_edges:

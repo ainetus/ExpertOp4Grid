@@ -196,6 +196,45 @@ def test_layer_index_emits_extra_cut_layer_with_endpoints():
     assert layer["section"] == "Individual entities properties"
 
 
+def test_layer_index_emits_evacuation_antenna_layer_in_structural_paths():
+    """``in_evacuation_antenna`` flags antenna nodes and branches; the layer
+    sits with the other structural elements, and the renderer's antenna
+    colour does not become a flow-polarity layer."""
+    edges = [
+        {"id": "edge1", "source": "P1", "target": "B",
+         "attrs": {"color": "darkgoldenrod", "in_evacuation_antenna": "True"}},
+        {"id": "edge2", "source": "B", "target": "C",
+         "attrs": {"color": "blue", "on_constrained_path": True}},
+    ]
+    nodes = [
+        {"name": "P1", "attrs": {"in_evacuation_antenna": "True"}},
+        {"name": "B", "attrs": {"is_antenna_attachment": "True"}},
+        {"name": "C", "attrs": {}},
+    ]
+    by_key = {l["key"]: l for l in _build_layer_index(edges, nodes)}
+
+    layer = by_key["semantic:in_evacuation_antenna"]
+    assert layer["edges"] == ["edge1"]
+    assert layer["nodes"] == ["P1"]
+    assert layer["swatch"] == "evacuation-antenna"
+    assert layer["label"] == "Evacuation antennas"
+    assert layer["section"] == "Structural Paths"
+    assert "color:darkgoldenrod" not in by_key
+
+
+def test_every_semantic_layer_swatch_has_a_glyph_in_the_viewer():
+    """The JS draws each semantic layer's swatch by name; a layer added
+    without its glyph would show an empty chip."""
+    from pathlib import Path
+
+    import alphaDeesp.core.interactive_html as ih_pkg
+    from alphaDeesp.core.interactive_html.constants import _SEMANTIC_LAYERS
+
+    js = (Path(ih_pkg.__file__).parent / "assets" / "viewer.js").read_text(encoding="utf-8")
+    for cfg in _SEMANTIC_LAYERS:
+        assert f"swatch === '{cfg['swatch']}'" in js, cfg["key"]
+
+
 def test_layer_index_skips_semantic_layer_when_no_match():
     """No noise: empty semantic buckets do NOT produce a layer entry."""
     edges = [

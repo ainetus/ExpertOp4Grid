@@ -1,5 +1,35 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Evacuation antennas in the overflow graph drawing.** An evacuation antenna
+  is a part of the grid whose net production leaves through a single node of
+  the constrained path (or several, when insensitive). Its report is
+  insignificant, so its edges are gray, yet it is a lever.
+  expert_op4grid_recommender detects these antennas and stamps
+  `in_evacuation_antenna` on their nodes and branches.
+  - `OverflowGraphRenderer.prepare_for_plot` builds the graph actually drawn.
+    The reduced view (`without_gray_edges`) keeps the flagged gray edges and
+    the antenna nodes, with their injection colours like every other node.
+    The edges are drawn in an ochre yellow, `EVACUATION_ANTENNA_COLOR`
+    (`darkgoldenrod`), and keep the same conventions as the other edges:
+    report label and arrow.
+  - Everything happens on a copy: the model's colours are analysis data
+    (`Structured_Overload_Distribution_Graph` builds its views from them), so
+    they are never repainted. A drawn antenna edge keeps `base_color="gray"`,
+    and an antenna edge with a significant report keeps its colour.
+  - `delete_color_edges` gains `keep_flags`, which spares the edges carrying
+    one of the given boolean flags. The analysis views do not pass it.
+  - The interactive viewer gains an **Evacuation antennas** layer in the
+    *Structural Paths* section, with a dedicated glyph. A test now checks that
+    every semantic layer's swatch has a glyph in `viewer.js`.
+
+  On a full-France snapshot (contingency `MERLAL62SOULL`), the reduced view
+  goes from 26 to 33 nodes: the 7 substations and 14 branches of the Vent des
+  Îles offshore park antenna (231 MW) were dropped before and are now drawn.
+
 ## [0.3.3] - 2026-07-16
 
 Large architecture-review pass over the `alphaDeesp` graph layer: correctness

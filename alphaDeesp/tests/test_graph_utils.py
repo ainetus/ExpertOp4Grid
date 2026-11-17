@@ -75,6 +75,26 @@ class TestDeleteColorEdges:
         assert result.number_of_edges() == 0
         assert result.number_of_nodes() == 0
 
+    def test_keep_flags_spare_flagged_edges_and_their_nodes(self):
+        """A flagged gray edge survives, and so does the node it alone connects."""
+        g = nx.MultiDiGraph()
+        g.add_edge("A", "B", color="blue", capacity=-5., name="line_AB")
+        g.add_edge("B", "C", color="gray", capacity=0., name="line_BC",
+                   in_evacuation_antenna=True)
+        g.add_edge("B", "D", color="gray", capacity=0., name="line_BD")
+        result = delete_color_edges(g, "gray", keep_flags=("in_evacuation_antenna",))
+        assert set(result.edges()) == {("A", "B"), ("B", "C")}
+        assert "C" in result.nodes() and "D" not in result.nodes()
+
+    def test_keep_flags_read_flags_that_went_through_dot(self):
+        """``"True"`` (a flag after DOT) spares an edge; ``False`` and ``"False"`` do not."""
+        g = nx.MultiDiGraph()
+        g.add_edge("A", "B", color="gray", name="l1", in_evacuation_antenna="True")
+        g.add_edge("B", "C", color="gray", name="l2", in_evacuation_antenna=False)
+        g.add_edge("C", "D", color="gray", name="l3", in_evacuation_antenna="False")
+        result = delete_color_edges(g, "gray", keep_flags=("in_evacuation_antenna",))
+        assert [name for _, _, name in result.edges(data="name")] == ["l1"]
+
 
 # ──────────────────────────────────────────────────────────────────────
 # nodepath_to_edgepath

@@ -83,11 +83,13 @@ Semantic model vs. renderer
   the ``MultiDiGraph`` topology, per-edge redispatch magnitude, the edge *role*
   encoded as a base colour, and the boolean semantic flags consumed downstream
   (``is_overload``, ``is_monitored``, ``on_constrained_path``, ``in_red_loop``,
-  ``is_hub``, ``is_extra_cut``).
+  ``is_hub``, ``is_extra_cut``). Callers may also stamp
+  ``in_evacuation_antenna`` on the evacuation antennas they detect.
 * :class:`~alphaDeesp.core.graphs.overflow_renderer.OverflowGraphRenderer` owns
   all Graphviz *presentation* — penwidth scaling, node shapes, tapered swap
   styling, the compound ``"colour:yellow:colour"`` highlight strings, HTML
-  loading labels, and plotting. It is **stateless** (static methods over a
+  loading labels, the drawing of evacuation antennas (kept in the reduced view,
+  in ochre), and plotting. It is **stateless** (static methods over a
   passed-in graph), so downstream repositories can reuse it on any compatible
   ``MultiDiGraph``.
 
@@ -184,5 +186,7 @@ Extending the system
   :class:`~alphaDeesp.core.graphs.overflow_renderer.OverflowGraphRenderer`; it is
   independent of the model.
 * **New semantic layer** — stamp a boolean flag on the model
-  (``OverFlowGraph``) and add it to the viewer's layer configuration; do not key
+  (``OverFlowGraph``) and add it to the viewer's layer configuration
+  (``_SEMANTIC_LAYERS`` / ``_LAYER_SECTIONS``) with its swatch glyph in
+  ``assets/viewer.js`` (a test checks every semantic layer has one); do not key
   new behaviour off colour strings.

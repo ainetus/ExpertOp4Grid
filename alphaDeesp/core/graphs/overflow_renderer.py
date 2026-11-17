@@ -8,6 +8,8 @@ to live inside :class:`~alphaDeesp.core.graphs.overflow_graph.OverFlowGraph`:
 * tapered styling for flow-direction swaps,
 * the compound ``"colour:yellow:colour"`` highlight strings and the HTML
   ``before% → after%`` loading labels,
+* the drawing of evacuation antennas (kept in the reduced view, in their own
+  colour),
 * the actual plotting via :class:`~alphaDeesp.core.printer.Printer`.
 
 Keeping it separate draws a clean line between the **semantic model** —
@@ -29,9 +31,18 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import networkx as nx
 
 from alphaDeesp.core.printer import Printer
-from alphaDeesp.core.graphs.graph_utils import delete_color_edges
+from alphaDeesp.core.graphs.graph_utils import delete_color_edges, is_flag_set
 
 logger = logging.getLogger(__name__)
+
+# Evacuation antennas: parts of the grid tied to the constrained path through
+# a single node (or several, when insensitive), whose net production leaves
+# through it. The caller stamps them (expert_op4grid_recommender's
+# structural-antenna detection) with the ``in_evacuation_antenna`` flag. Their
+# report is insignificant, so their edges are gray, yet they are a lever: the
+# drawing keeps them, in an ochre yellow (see ``prepare_for_plot``).
+EVACUATION_ANTENNA_FLAG = "in_evacuation_antenna"
+EVACUATION_ANTENNA_COLOR = "darkgoldenrod"
 
 # Penwidth thresholds used when stamping edge thickness.
 # The floor is dynamic: at least the width equivalent to 1 MW of flow
@@ -175,6 +186,35 @@ class OverflowGraphRenderer:
     # ------------------------------------------------------------------
 
     @staticmethod
+    def prepare_for_plot(
+        g: nx.MultiDiGraph, without_gray_edges: bool = False
+    ) -> nx.MultiDiGraph:
+        """Return the graph to draw: *g* itself, or a copy when the drawing
+        differs from it. *g* is never modified.
+
+        ``without_gray_edges`` drops the gray (insignificant) edges and the
+        nodes they leave isolated, except the edges of evacuation antennas
+        (``in_evacuation_antenna``). The gray edges of an antenna are drawn in
+        ``EVACUATION_ANTENNA_COLOR``; like every other edge they keep their
+        report label and arrow, and their ``base_color`` keeps the gray role.
+        An antenna edge with a significant report keeps its colour.
+        """
+        antenna_edges = [
+            (u, v, k)
+            for u, v, k, data in g.edges(keys=True, data=True)
+            if is_flag_set(data.get(EVACUATION_ANTENNA_FLAG)) and data.get("color") == "gray"
+        ]
+        if without_gray_edges:
+            g = delete_color_edges(g, "gray", keep_flags=(EVACUATION_ANTENNA_FLAG,))
+        elif antenna_edges:
+            g = g.copy()
+        for edge in antenna_edges:
+            data = g.edges[edge]
+            data.setdefault("base_color", data["color"])
+            data["color"] = EVACUATION_ANTENNA_COLOR
+        return g
+
+    @staticmethod
     def plot(
         g: nx.MultiDiGraph,
         layout: Optional[List[Any]],
@@ -185,14 +225,15 @@ class OverflowGraphRenderer:
         save_folder: str = "",
         without_gray_edges: bool = False,
     ) -> Any:
-        """Render *g* with Graphviz, optionally dropping gray edges first."""
+        """Render *g* with Graphviz, optionally dropping gray edges first
+        (see :meth:`prepare_for_plot`)."""
         printer = Printer(save_folder)
 
-        if without_gray_edges:
-            layout_dict = {n: c for n, c in zip(g.nodes, layout)} if layout is not None else None
-            g = delete_color_edges(g, "gray")
-            if layout_dict is not None:
-                layout = [layout_dict[node] for node in g.nodes]
+        drawn = OverflowGraphRenderer.prepare_for_plot(g, without_gray_edges)
+        if layout is not None and drawn.number_of_nodes() != g.number_of_nodes():
+            layout_dict = {n: c for n, c in zip(g.nodes, layout)}
+            layout = [layout_dict[node] for node in drawn.nodes]
+        g = drawn
 
         kwargs = dict(rescale_factor=rescale_factor, fontsize=fontsize,
                       node_thickness=node_thickness, name="g_overflow_print")

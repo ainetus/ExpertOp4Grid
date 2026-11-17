@@ -51,6 +51,11 @@ _STYLE_LAYERS: Dict[str, str] = {
 _SEMANTIC_LAYERS: List[Dict[str, str]] = [
     {"key": "on_constrained_path", "label": "Constrained path", "swatch": "constrained-path", "scope": "both"},
     {"key": "in_red_loop", "label": "Red-loop paths", "swatch": "red-loop", "scope": "both"},
+    # Evacuation antennas (stamped by expert_op4grid_recommender): parts of
+    # the grid whose net production leaves through a single node of the
+    # constrained path. Their report is insignificant, yet they are a lever;
+    # the renderer keeps them in the reduced view.
+    {"key": "in_evacuation_antenna", "label": "Evacuation antennas", "swatch": "evacuation-antenna", "scope": "both"},
     {"key": "is_overload", "label": "Overloads", "swatch": "overload", "scope": "edge"},
     {"key": "is_monitored", "label": "Low margin lines", "swatch": "monitored", "scope": "edge"},
     # Operator-supplied extras (ExpertAgent's `additionalLinesToCut`):
@@ -87,6 +92,7 @@ _LAYER_SECTIONS: Dict[str, str] = {
     # Structural paths — multi-edge structures.
     "semantic:on_constrained_path": _SECTION_STRUCTURAL,
     "semantic:in_red_loop": _SECTION_STRUCTURAL,
+    "semantic:in_evacuation_antenna": _SECTION_STRUCTURAL,
     # Individual entities properties — per-edge / per-node flags.
     "semantic:is_overload": _SECTION_PROPERTIES,
     "semantic:is_monitored": _SECTION_PROPERTIES,

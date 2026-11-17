@@ -101,11 +101,17 @@ OverFlowGraph, ...`; new code should import from `alphaDeesp.core.graphs`.
   insignificant), and the boolean semantic flags consumed downstream
   (`is_overload`, `is_monitored`, `on_constrained_path`, `in_red_loop`,
   `is_hub`, `is_extra_cut`). The public method signatures are unchanged.
+  Callers may also stamp `in_evacuation_antenna` on the evacuation antennas
+  they detect (expert_op4grid_recommender does).
 - `graphs/overflow_renderer.py::OverflowGraphRenderer` owns all Graphviz
   *presentation* (penwidth scaling, node shapes, tapered swap styling, the
   compound `"colour:yellow:colour"` highlight strings and HTML loading
   labels, and plotting). It is **stateless** (static methods over a passed-in
   graph) so downstream repos can reuse it on any compatible `MultiDiGraph`.
+  `prepare_for_plot` builds the graph actually drawn: the reduced view
+  (`without_gray_edges`) keeps the gray edges flagged `in_evacuation_antenna`,
+  drawn in `EVACUATION_ANTENNA_COLOR` (ochre) with their report label, on a
+  copy (the model's colours are analysis data and are never repainted).
 
 The public surface of the package is pinned by `tests/test_graphs_package.py`
 (`EXPECTED_PUBLIC_NAMES` / `EXPECTED_SUBMODULES`) — update those sets when you
@@ -226,7 +232,9 @@ Python binding). On Debian/Ubuntu: `apt-get install graphviz`.
   the "codebase is untyped" assumption.
 - `graphs/graph_utils.delete_color_edges` accepts a single colour **or an
   iterable of colours** and removes them in one graph copy — prefer the
-  multi-colour form to avoid chained full-graph copies.
+  multi-colour form to avoid chained full-graph copies. `keep_flags` spares
+  the edges carrying one of the given boolean flags (the renderer uses it for
+  evacuation antennas); the analysis views never pass it.
 - `Structured_Overload_Distribution_Graph.find_loops` can bound simple-path
   enumeration with `loop_path_cutoff` to avoid hangs on very large grids, but
   it is **opt-in**: the default is `None` (unbounded = original behaviour)

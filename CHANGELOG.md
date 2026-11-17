@@ -1,6 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.4] - 2026-11-17
+
+Evacuation antennas in the overflow graph drawing (PR #80). The reduced view
+keeps them, drawn in ochre with their report, and the interactive viewer offers
+them as a layer. This is rendering only: the analysis outputs are unchanged, and
+callers that never stamp `in_evacuation_antenna` get the same drawing as with
+0.3.3. 460 runnable tests (CI command) pass.
 
 ### Added
 
@@ -24,7 +30,10 @@
     one of the given boolean flags. The analysis views do not pass it.
   - The interactive viewer gains an **Evacuation antennas** layer in the
     *Structural Paths* section, with a dedicated glyph. A test now checks that
-    every semantic layer's swatch has a glyph in `viewer.js`.
+    every semantic layer's swatch has a glyph in `viewer.js`, and
+    `docs/ARCHITECTURE.rst` lists that glyph among the steps to add a layer.
+  - `OverflowGraphRenderer.plot` draws the prepared graph, with the layout of
+    exactly the nodes it keeps (tested with a fake printer).
 
   On a full-France snapshot (contingency `MERLAL62SOULL`), the reduced view
   goes from 26 to 33 nodes: the 7 substations and 14 branches of the Vent des
